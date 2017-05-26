@@ -135,12 +135,11 @@ $("#show-unwatched-movies").click((event) =>{
     let breadcrumbs = "Movie History > Search Results/ Watchlist";
     $("#bread-crumbs").text(breadcrumbs);
     $("#input").val("");
-//    $(".toggle-buttons").toggle("toggle-selected");
+
     let userID = user.getUser();
-    console.log("Checking user ID", userID);
     db.pullWatchFromFirebase(userID)
     .then((data) =>{
-        displayWatchList(data);
+         displayWatchList(data);
     });
 });
 
@@ -153,7 +152,9 @@ function displayWatchList (watchObj) {
      for (let key in watchObj) {
             let newMovieObj = watchObj[key];
             newMovieObj.key = key;
+            if(Number(newMovieObj.starValue) === 0){
             $(".movies").append(watchedcardsTemplate(newMovieObj));
+            }
             deleteButtonListener(key);
             $("#star--" + key).rating({stars: 10, step: 1, min: 0, max: 10});
             $("#star--" + key).rating('update', newMovieObj.starValue);
@@ -170,6 +171,7 @@ function displayWatchList (watchObj) {
 }
 //Tam...removed watched movie card from page
 function deleteButtonListener(key) {
+    console.log("Is event happening");
     $("#watch--" + key).click((event)=>{
         let deleteButton = event.currentTarget.parentElement.parentElement;
         let currentUser = user.getUser();
@@ -185,29 +187,31 @@ $("#show-watched-movies").click((event)=>{
     $("#bread-crumbs").text(breadcrumbs);
     $(document).off("click", ".watch-list-delete");
     $(".movies").empty();
-    let currentUser = user.getUser();
-    db.pullWatchFromFirebase(currentUser)
-    .then((movieObj) =>{
-        for (let key in movieObj) {
-            let singleMovie = movieObj[key];
-            singleMovie.key = key;
-            if (singleMovie.starValue > 0) {
-                $(".movies").append(watchedcardsTemplate(singleMovie));
-                deleteButtonListener(key);
-                $("#star--" + key).rating({stars: 10, step: 1, min: 0, max: 10});
-                $("#star--" + key).rating('update', singleMovie.starValue);
-            }
-        }
 
-    }).catch(console.error);
+    showWatchedMovies();
+    // let currentUser = user.getUser();
+    // db.pullWatchFromFirebase(currentUser)
+    // .then((movieObj) =>{
+    //     for (let key in movieObj) {
+    //         let singleMovie = movieObj[key];
+    //         singleMovie.key = key;
+    //         if (singleMovie.starValue > 0) {
+    //             $(".movies").append(watchedcardsTemplate(singleMovie));
+    //             deleteButtonListener(key);
+    //             $("#star--" + key).rating({stars: 10, step: 1, min: 0, max: 10});
+    //             $("#star--" + key).rating('update', singleMovie.starValue);
+    //         }
+    //     }
+
+    // }).catch(console.error);
 });
 
-$("#searchFilter p").click((event)=>{
-    $(".button-class").removeClass("button-class");
-    let currentButton = event.currentTarget.id;
-    console.log("what is happening here with this button", currentButton);
-    $("#" + currentButton).toggleClass("button-class");
-});
+// $("#searchFilter p").click((event)=>{
+//     $(".button-class").removeClass("button-class");
+//     let currentButton = event.currentTarget.id;
+//     console.log("what is happening here with this button", currentButton);
+//     $("#" + currentButton).toggleClass("button-class");
+// });
 
 
 
@@ -223,10 +227,43 @@ $("#searchFilter p").click((event)=>{
 //     mySlider.slider('setValue', 1);
 //     mySlider.slider('setValue', 10);
 
+//var slide = document.getElementById('slide'),
+
+//$("#slide").click((event) => {
+//        console.log("is anything happening?");
+//});
 
 
+$("#slide").on("input change", function(event) {
+    showWatchedMovies(event);
+});
 
+var showWatchedMovies = function (event) {
+    $(".movies").empty();
+    let currentUser = user.getUser();
+    let currentSlideValue = $("#slide").val();
+    console.log("currentSlideValue", currentSlideValue);
+    db.pullWatchFromFirebase(currentUser)
+    .then ((movieObj)=>{
 
+        for (let items in movieObj ) {
+            let stars = movieObj[items].starValue;
+            let starkey = movieObj[items];
+            starkey.key = items;
+//            console.log("what is my star", stars);
+            if (stars == currentSlideValue) {
+                deleteButtonListener(items);
+                console.log("star rating", stars);
+                console.log("Slider Value: " + event.currentTarget.value);
+                $(".movies").append(watchedcardsTemplate(movieObj[items]));
+                $("#star--" + items).rating({stars: 10, step: 1, min: 0, max: 10});
+                $("#star--" + items).rating('update', movieObj[items].starValue);
 
+            }else {
+                console.log("no rating");
 
+            }
+        }
+    });
+};
 
