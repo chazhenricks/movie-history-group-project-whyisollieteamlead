@@ -209,7 +209,9 @@ $("#searchFilter p").click((event)=>{
     $("#" + currentButton).toggleClass("button-class");
 });
 
-
+var sliderVal = document.getElementById("slider").value;
+var showValue = document.getElementById("range");
+showValue.innerHTML = sliderVal;
 
 // Kathy's attempt at bootstrap-slider
 
